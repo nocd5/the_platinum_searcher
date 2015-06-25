@@ -13,6 +13,7 @@ type Match struct {
 	Befores   []*Line
 	Afters    []*Line
 	Col       int
+	ColRune   int
 }
 
 type Line struct {
@@ -55,6 +56,7 @@ func (m *Match) setMatch(pattern *Pattern, num int, s string) {
 		} else {
 			m.Col = strings.Index(m.Str, pattern.Pattern) + 1
 		}
+		m.ColRune = len([]rune(m.Str[0:m.Col-1])) + 1
 	}
 	m.Matched = true
 }

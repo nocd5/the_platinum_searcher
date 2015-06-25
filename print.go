@@ -114,7 +114,11 @@ func (p *print) printColumn(column int, sep string) {
 func (p *print) printMatch(pattern *Pattern, match *Match) {
 	p.printLineNumber(match.Num, ":")
 	if p.Option.Column {
-		p.printColumn(match.Col, ":")
+		if p.Option.ColumnAsRune {
+			p.printColumn(match.ColRune, ":")
+		} else {
+			p.printColumn(match.Col, ":")
+		}
 	}
 	fmt.Fprint(p.writer, p.decorator.match(pattern, match.Line))
 }
