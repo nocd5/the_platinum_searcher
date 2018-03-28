@@ -1,4 +1,4 @@
-# The Platinum Searcher
+# The Platinum Searcher [![Build Status](https://travis-ci.org/monochromegane/the_platinum_searcher.svg?branch=master)](https://travis-ci.org/monochromegane/the_platinum_searcher) [![wercker status](https://app.wercker.com/status/59ef90ac217537abc0994546958037f3/s/master "wercker status")](https://app.wercker.com/project/bykey/59ef90ac217537abc0994546958037f3)
 
 A code search tool similar to `ack` and `the_silver_searcher(ag)`. It supports multi platforms and multi encodings.
 
@@ -6,49 +6,47 @@ A code search tool similar to `ack` and `the_silver_searcher(ag)`. It supports m
 
 - It searches code about 3–5× faster than `ack`.
 - It searches code as fast as `the_silver_searcher(ag)`.
-- It ignores file patterns from your `.gitignore` and `.hgignore`.
+- It ignores file patterns from your `.gitignore`.
 - It searches `UTF-8`, `EUC-JP` and `Shift_JIS` files.
-- It provides binaries for multi platform (Mac OS X, Windows, Linux).
+- It provides binaries for multi platform (macOS, Windows, Linux).
 
 ### Benchmarks
 
 ```sh
-ack go  6.24s user 1.06s system 99%  cpu 7.304 total # ack:
-ag go   0.88s user 1.39s system 221% cpu 1.027 total # ag:  It's faster than ack
-pt go   1.09s user 1.01s system 235% cpu 0.892 total # pt:  It's faster than ag!!
+cd ~/src/github.com/torvalds/linux
+ack EXPORT_SYMBOL_GPL 30.18s user 2.32s system  99% cpu 32.613 total # ack
+ag  EXPORT_SYMBOL_GPL  1.57s user 1.76s system 311% cpu  1.069 total # ag: It's faster than ack.
+pt  EXPORT_SYMBOL_GPL  2.29s user 1.26s system 358% cpu  0.991 total # pt: It's faster than ag!!
 ```
-
-## Installation
-
-### Developer
-
-```sh
-$ go get -u github.com/monochromegane/the_platinum_searcher/...
-```
-
-### User
-
-Download from the following url.
-
-- [https://github.com/monochromegane/the_platinum_searcher/releases](https://github.com/monochromegane/the_platinum_searcher/releases)
-
-Or, you can use Homebrew (Only MacOSX).
-
-```sh
-$ brew install pt
-```
-
-`pt` is an alias for `the_platinum_searcher` in Homebrew.
 
 ## Usage
 
 ```sh
-$ # Recursively searchs for PATTERN in current directory.
+$ # Recursively searches for PATTERN in current directory.
 $ pt PATTERN
 
-$ # You can specified PATH and some OPTIONS.
+$ # You can specify PATH and some OPTIONS.
 $ pt OPTIONS PATTERN PATH
 ```
+
+## Configuration
+
+If you put configuration file on the following directories, pt use option in the file.
+
+- $XDG\_CONFIG\_HOME/pt/config.toml
+- $HOME/.ptconfig.toml
+- .ptconfig.toml (current directory)
+
+The file is TOML format like the following.
+
+```toml
+color = true
+context = 3
+ignore = ["dir1", "dir2"]
+color-path = "1;34"
+```
+
+The options are same as command line options.
 
 ## Editor Integration
 
@@ -70,17 +68,43 @@ endif
 
 You can use pt with [pt.el](https://github.com/bling/pt.el), which can be installed from [MELPA](http://melpa.milkbox.net/).
 
-## Code Status
+## Installation
 
-[![wercker status](https://app.wercker.com/status/59ef90ac217537abc0994546958037f3/m/master "wercker status")](https://app.wercker.com/project/bykey/59ef90ac217537abc0994546958037f3)
+### Developer
 
-[![Build Status](https://travis-ci.org/monochromegane/the_platinum_searcher.svg?branch=master)](https://travis-ci.org/monochromegane/the_platinum_searcher)
+```sh
+$ go get -u github.com/monochromegane/the_platinum_searcher/...
+```
 
-## Contributing
+### User
+
+Download from the following url.
+
+- [https://github.com/monochromegane/the_platinum_searcher/releases](https://github.com/monochromegane/the_platinum_searcher/releases)
+
+Or, you can use Homebrew (Only macOS).
+
+```sh
+$ brew install pt
+```
+
+`pt` is an alias for `the_platinum_searcher` in Homebrew.
+
+## Contribution
 
 1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+2. Create a feature branch
+3. Commit your changes
+4. Rebase your local changes against the master branch
+5. Run test suite with the `go test ./...` command and confirm that it passes
+6. Run `gofmt -s`
+7. Create new Pull Request
+
+## License
+
+[MIT](https://github.com/monochromegane/the_platinum_searcher/blob/master/LICENSE)
+
+## Author
+
+[monochromegane](https://github.com/monochromegane)
 

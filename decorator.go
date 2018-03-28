@@ -1,70 +1,106 @@
 package the_platinum_searcher
 
 import (
-	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
 const (
-	ColorReset      = "\x1b[0m\x1b[K"
-	ColorLineNumber = "\x1b[1;33m"  /* yellow with black background */
-	ColorPath       = "\x1b[1;32m"  /* bold green */
-	ColorMatch      = "\x1b[30;43m" /* black with yellow background */
+	ColorReset = "\x1b[0m\x1b[K"
+
+	SeparatorColon  = ":"
+	SeparatorHyphen = "-"
 )
 
-type Decorator interface {
+type decorator interface {
 	path(path string) string
-	lineNumber(lineNum int, sep string) string
-	column(col int, sep string) string
-	match(pattern *Pattern, line *Line) string
+	lineNumber(lineNum int) string
+	columnNumber(columnNum int) string
+	match(line string, matched bool) string
 }
 
-func newDecorator(option *Option) Decorator {
-	if option.EnableColor {
-		return Color{}
+func newDecorator(pattern pattern, option Option) decorator {
+	if option.OutputOption.EnableColor {
+		return newColor(pattern, option)
 	} else {
-		return Plain{}
+		return plain{}
 	}
 }
 
-type Color struct {
+type color struct {
+	from   string
+	to     string
+	regexp *regexp.Regexp
+
+	colorLineNumber string
+	colorPath       string
+	colorMatch      string
 }
 
-func (c Color) path(path string) string {
-	return fmt.Sprintf("%s%s%s", ColorPath, path, ColorReset)
-}
-
-func (c Color) lineNumber(lineNum int, sep string) string {
-	return fmt.Sprintf("%s%d%s%s", ColorLineNumber, lineNum, ColorReset, sep)
-}
-
-func (c Color) column(col int, sep string) string {
-	return fmt.Sprintf("%d%s", col, sep)
-}
-
-func (c Color) match(pattern *Pattern, line *Line) string {
-	if pattern.UseRegexp || pattern.IgnoreCase {
-		return pattern.Regexp.ReplaceAllString(line.Str, ColorMatch+"${1}"+ColorReset)
+func newColor(pattern pattern, option Option) color {
+	color := color{
+		colorLineNumber: ansiEscape(option.OutputOption.ColorCodeLineNumber),
+		colorPath:       ansiEscape(option.OutputOption.ColorCodePath),
+		colorMatch:      ansiEscape(option.OutputOption.ColorCodeMatch),
+	}
+	if pattern.regexp == nil {
+		p := string(pattern.pattern)
+		color.from = p
+		color.to = color.colorMatch + p + ColorReset
 	} else {
-		return strings.Replace(line.Str, pattern.Pattern, ColorMatch+pattern.Pattern+ColorReset, -1)
+		color.to = color.colorMatch + "${1}" + ColorReset
+		color.regexp = pattern.regexp
+	}
+	return color
+}
+
+func ansiEscape(code string) string {
+	re := regexp.MustCompile("[^0-9;]")
+	sanitized := re.ReplaceAllString(code, "")
+	if sanitized == "" {
+		sanitized = "0" // all attributes off
+	}
+	return "\x1b[" + sanitized + "m"
+}
+
+func (c color) path(path string) string {
+	return c.colorPath + path + ColorReset
+}
+
+func (c color) lineNumber(lineNum int) string {
+	return c.colorLineNumber + strconv.Itoa(lineNum) + ColorReset
+}
+
+func (c color) columnNumber(columnNum int) string {
+	return strconv.Itoa(columnNum)
+}
+
+func (c color) match(line string, matched bool) string {
+	if !matched {
+		return line
+	} else if c.regexp == nil {
+		return strings.Replace(line, c.from, c.to, -1)
+	} else {
+		return c.regexp.ReplaceAllString(line, c.to)
 	}
 }
 
-type Plain struct {
+type plain struct {
 }
 
-func (p Plain) path(path string) string {
+func (p plain) path(path string) string {
 	return path
 }
 
-func (p Plain) lineNumber(lineNum int, sep string) string {
-	return fmt.Sprintf("%d%s", lineNum, sep)
+func (p plain) lineNumber(lineNum int) string {
+	return strconv.Itoa(lineNum)
 }
 
-func (p Plain) column(col int, sep string) string {
-	return fmt.Sprintf("%d%s", col, sep)
+func (p plain) columnNumber(columnNum int) string {
+	return strconv.Itoa(columnNum)
 }
 
-func (p Plain) match(pattern *Pattern, line *Line) string {
-	return line.Str
+func (p plain) match(line string, matched bool) string {
+	return line
 }

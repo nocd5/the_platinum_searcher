@@ -6,14 +6,13 @@ import (
 	"path/filepath"
 )
 
-type FileInfo struct {
+type fileInfo struct {
 	path string
 	os.FileInfo
-	follow bool
 }
 
-func (f *FileInfo) IsDir() bool {
-	if f.follow && f.IsSymlink() {
+func (f fileInfo) isDir(follow bool) bool {
+	if follow && f.isSymlink() {
 		if _, err := ioutil.ReadDir(filepath.Join(f.path, f.FileInfo.Name())); err == nil {
 			return true
 		} else {
@@ -24,10 +23,14 @@ func (f *FileInfo) IsDir() bool {
 	}
 }
 
-func (f *FileInfo) IsSymlink() bool {
+func (f fileInfo) isSymlink() bool {
 	return f.FileInfo.Mode()&os.ModeSymlink == os.ModeSymlink
 }
 
-func newFileInfo(path string, info os.FileInfo, follow bool) *FileInfo {
-	return &FileInfo{path, info, follow}
+func (f fileInfo) isNamedPipe() bool {
+	return f.FileInfo.Mode()&os.ModeNamedPipe == os.ModeNamedPipe
+}
+
+func newFileInfo(path string, info os.FileInfo) fileInfo {
+	return fileInfo{path, info}
 }
