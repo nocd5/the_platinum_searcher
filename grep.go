@@ -1,5 +1,7 @@
 package the_platinum_searcher
 
+import "io"
+import "os"
 import "sync"
 
 var newLine = []byte("\n")
@@ -11,13 +13,14 @@ type grep struct {
 	opts    Option
 }
 
-func newGrep(pattern pattern, in chan string, done chan struct{}, opts Option, printer printer) grep {
+func newGrep(pattern pattern, in chan string, done chan struct{}, opts Option, printer printer, reader func(*os.File) io.Reader) grep {
 	return grep{
 		in:   in,
 		done: done,
 		grepper: newGrepper(
 			pattern,
 			printer,
+			reader,
 			opts,
 		),
 		opts: opts,
@@ -45,7 +48,7 @@ type grepper interface {
 	grep(path string)
 }
 
-func newGrepper(pattern pattern, printer printer, opts Option) grepper {
+func newGrepper(pattern pattern, printer printer, reader func(*os.File) io.Reader, opts Option) grepper {
 	if opts.SearchOption.EnableFilesWithRegexp {
 		return passthroughGrep{
 			printer: printer,
@@ -53,12 +56,12 @@ func newGrepper(pattern pattern, printer printer, opts Option) grepper {
 	} else if opts.SearchOption.Regexp {
 		return extendedGrep{
 			pattern:  pattern,
-			lineGrep: newLineGrep(printer, opts),
+			lineGrep: newLineGrep(printer, reader, opts),
 		}
 	} else {
 		return fixedGrep{
 			pattern:  pattern,
-			lineGrep: newLineGrep(printer, opts),
+			lineGrep: newLineGrep(printer, reader, opts),
 		}
 	}
 }

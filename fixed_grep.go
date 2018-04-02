@@ -30,6 +30,8 @@ func (g fixedGrep) grep(path string) {
 		return
 	}
 
+	d := g.reader(f)
+
 	buf := make([]byte, 8196)
 	var stash []byte
 	identified := false
@@ -37,14 +39,11 @@ func (g fixedGrep) grep(path string) {
 	pattern := g.pattern.pattern
 
 	for {
-		c, err := f.Read(buf)
+		c, err := d.Read(buf)
 		if err != nil && err != io.EOF {
 			log.Fatalf("read: %s\n", err)
 		}
-
-		if err == io.EOF {
-			break
-		}
+		eof := err == io.EOF
 
 		// detect encoding.
 		if !identified {
@@ -104,6 +103,10 @@ func (g fixedGrep) grep(path string) {
 		} else {
 			stash = make([]byte, c-index)
 			copy(stash, buf[index:c])
+		}
+
+		if eof {
+			break
 		}
 	}
 }

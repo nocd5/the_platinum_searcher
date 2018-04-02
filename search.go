@@ -2,6 +2,7 @@ package the_platinum_searcher
 
 import (
 	"io"
+	"os"
 	"regexp"
 )
 
@@ -56,6 +57,15 @@ func (s search) start(pattern string) error {
 		}
 	}
 
+	var reader func(*os.File) io.Reader
+	if opts.SearchOption.Compressed {
+		reader = decompress
+	} else {
+		reader = func(f *os.File) io.Reader {
+			return f
+		}
+	}
+
 	go find{
 		out:  grepChan,
 		opts: opts,
@@ -67,6 +77,7 @@ func (s search) start(pattern string) error {
 		done,
 		opts,
 		newPrinter(p, s.out, opts),
+		reader,
 	).start()
 
 	<-done

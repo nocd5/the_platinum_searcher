@@ -8,14 +8,16 @@ import (
 
 type lineGrep struct {
 	printer printer
+	reader  func(*os.File) io.Reader
 	before  int
 	after   int
 	column  bool
 }
 
-func newLineGrep(printer printer, opts Option) lineGrep {
+func newLineGrep(printer printer, reader func(*os.File) io.Reader, opts Option) lineGrep {
 	return lineGrep{
 		printer: printer,
+		reader:  reader,
 		before:  opts.OutputOption.Before,
 		after:   opts.OutputOption.After,
 		column:  opts.OutputOption.Column,
@@ -33,12 +35,14 @@ func (g lineGrep) grepEachLines(f *os.File, encoding int, matchFn matchFunc, cou
 	f.Seek(0, 0)
 	match := match{path: f.Name()}
 
+	d := g.reader(f)
+
 	var reader io.Reader
-	if r := newDecodeReader(f, encoding); r != nil {
+	if r := newDecodeReader(d, encoding); r != nil {
 		// decode file from shift-jis or euc-jp.
 		reader = r
 	} else {
-		reader = f
+		reader = d
 	}
 
 	lineNum := 1

@@ -30,13 +30,9 @@ func (g extendedGrep) grep(path string) {
 
 	buf := make([]byte, 512)
 
-	c, err := f.Read(buf)
+	c, err := g.reader(f).Read(buf)
 	if err != nil && err != io.EOF {
 		log.Fatalf("read: %s\n", err)
-	}
-
-	if err == io.EOF {
-		return
 	}
 
 	// detect encoding.

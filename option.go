@@ -122,6 +122,7 @@ type SearchOption struct {
 	Follow                 bool         `short:"f" long:"follow" description:"Follow symlinks"`
 	Hidden                 bool         `long:"hidden" description:"Search hidden files and directories"`
 	SearchStream           bool         // Input from pipe. Not user option.
+	Compressed             bool         `short:"z" long:"search-zip" description:"Search compressed files"`
 }
 
 func (o *SearchOption) SetFilesWithRegexp(p string) {
