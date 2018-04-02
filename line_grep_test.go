@@ -2,6 +2,7 @@ package the_platinum_searcher
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"testing"
 )
@@ -55,7 +56,8 @@ files/context/context.txt:6:go test
 func assertLineGrep(opts Option, path string, expect string) bool {
 	buf := new(bytes.Buffer)
 	printer := newPrinter(pattern{}, buf, opts)
-	grep := newLineGrep(printer, opts)
+	reader := func(f *os.File) io.Reader { return f }
+	grep := newLineGrep(printer, reader, opts)
 
 	f, _ := os.Open(path)
 

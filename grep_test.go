@@ -2,6 +2,7 @@ package the_platinum_searcher
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -123,7 +124,8 @@ func assertGrep(pattern pattern, opts Option, paths, asserts []string) bool {
 
 	in := make(chan string)
 	done := make(chan struct{})
-	grep := newGrep(pattern, in, done, opts, printer)
+	reader := func(f *os.File) io.Reader { return f }
+	grep := newGrep(pattern, in, done, opts, printer, reader)
 	go grep.start()
 
 	for _, path := range paths {
